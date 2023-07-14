@@ -3,7 +3,7 @@ covert currencies to DZD in BM prices and display it in a readable way
 
 ### installing  
 ```
-cargo install -git https://github.com/ihab65/dzdc.git
+cargo install --git https://github.com/ihab65/dzdc.git
 ```
 ### using it 
 ```
