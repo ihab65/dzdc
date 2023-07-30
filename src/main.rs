@@ -81,6 +81,8 @@ fn print_as_word(number: String) {
         } // end of match
         if output_str.ends_with("000") {
             output_str = output_str.trim_end_matches("o 000").to_string();
+        } else if output_str.ends_with("o 000 millions") {
+            output_str = output_str.trim_end_matches("o 000 millions").to_string()
         }
         println!("{}", output_str)
 
