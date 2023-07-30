@@ -3,17 +3,16 @@ use std::env;
 const CURRENCIES: [&str; 2] = ["usd", "eur"];
 
 fn print_as_word(number: String) {
-    let mut leading_numbers = String::new();
-    let mut output_str = String::new();
+    let mut output_str = String::from("-> ");
     match number.len() {
 
             num if num == 4 => {
                 for (i, c) in number.chars().enumerate() {
                     if i != 3 {    
-                        leading_numbers.push(c);
+                        output_str.push(c);
                     }
-                    output_str = format!("{leading_numbers} alf")
                 }
+                output_str.push_str(" alf")
             },
 
             num if num == 5 => {
@@ -83,6 +82,8 @@ fn print_as_word(number: String) {
             output_str = output_str.trim_end_matches("o 000").to_string();
         } else if output_str.ends_with("o 000 millions") {
             output_str = output_str.trim_end_matches("o 000 millions").to_string()
+        } else if output_str.ends_with("-> ") {
+            output_str = output_str.trim_end_matches("-> ").to_string();
         }
         println!("{}", output_str)
 
@@ -106,7 +107,7 @@ fn calculate(sum: f64 , unit: &str) {
         let output = sum*220f64;
         let cstr = format!("{}", output.round());
         println!("");
-        print!("{} {} is {} dzd -> ", sum, unit, format_num(cstr.clone()));
+        print!("{} {} is {} dzd ", sum, unit, format_num(cstr.clone()));
         print_as_word(cstr)
 
     } else if unit == "dzd" {
