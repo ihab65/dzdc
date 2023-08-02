@@ -114,7 +114,7 @@ fn calculate(sum: f64 , unit: &str) {
         let output = sum/220f64;
         let cstr = format!("{}", output.round());
         println!("");
-        print!("{} {} is {} usd or eur => ", sum, unit, format_num(cstr))
+        println!("{} {} is {} usd or eur", sum, unit, format_num(cstr))
     }
 }
 
