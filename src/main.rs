@@ -53,20 +53,35 @@ fn calculate(sum: f32, unit: &Currency<'_>) -> f32 {
     sum * unit.value
 }
 
+fn format_num(cstr: String) -> String {
+    cstr
+        .as_bytes()
+        .rchunks(3)
+        .rev()
+        .map(std::str::from_utf8)
+        .collect::<Result<Vec<&str>, _>>()
+        .unwrap()
+        .join(",")
+}
+
 fn as_word(mut amount: u32) {
     let mut values = [0u32; 4];
     let units: [&str; 3] = ["mlyar", "million", "alf"];
     let divs: [u32; 3] = [10_000_000, 10_000, 10];
 
+    let amount_str = format!("{}", amount);
+    print!("{} dzd ", format_num(amount_str));
+    
     for (i, &divisor) in divs.iter().enumerate() {
         values[i] = amount / divisor;
         amount %= divisor;
     }
 
+    print!(">> ");
     for (i, &value) in values.iter().enumerate() {
         if value != 0 {
             print!("{} {} ", value, units[i]);
         }
     }
-    println!("dzd")
+    println!("\n")
 }
