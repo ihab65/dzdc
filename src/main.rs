@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, process::exit};
 
 #[derive(PartialEq)]
 struct Currency<'a> {
@@ -18,44 +18,55 @@ const CURRENCIES: [Currency; 3] = [
     Currency::new("GBP", 250f32)
 ];
 
-
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let sum = args[1]
-        .parse::<f32>()
-        .map_err(|err| eprintln!("ERROR: failed parsing the sum argument: {err}"))
-        .unwrap();
+    if args.len() < 3 {
+        eprintln!("Usage: dzdc <SUM> <CURRENCY>");
+    }
 
-    let unit = &args[2];
-    let currency = CURRENCIES.iter().find(|&c| c.name == unit.to_uppercase()).unwrap();
+    let sum = match args[1].parse::<f32>() {
+        Ok(value) => value,
+        Err(err) => {
+            eprintln!("ERROR: Failed parsing the sum argument: {}", err);
+            exit(1)
+        }
+    };
+
+    let unit = &args[2].to_uppercase();
+    let currency = match CURRENCIES.iter().find(|&c| c.name == unit) {
+        Some(currency) => {
+            currency
+        }
+        None => {
+            eprintln!("ERROR: Unknown unit: {}", unit);
+            eprintln!("INFO:  you can use USD, EUR or GBP as units");
+            exit(1)
+        }
+    };
 
     as_word(calculate(sum, currency) as u32)
 }
+
 
 fn calculate(sum: f32, unit: &Currency<'_>) -> f32 {
     sum * unit.value
 }
 
 fn as_word(mut amount: u32) {
-    let b = amount / 10_000_000;
-    amount = amount % 10_000_000;
-    let m = amount / 10_000;
-    amount = amount % 10_000;
-    let k = (amount / 1_000) * 100;
-    let c = amount % 1_000;
+    let mut values = [0u32; 4];
+    let units: [&str; 3] = ["mlyar", "million", "alf"];
+    let divs: [u32; 3] = [10_000_000, 10_000, 10];
 
-    if b != 0 {
-        print!(" {}mlyar", b);
+    for (i, &divisor) in divs.iter().enumerate() {
+        values[i] = amount / divisor;
+        amount %= divisor;
     }
-    if m != 0 {
-        print!(" {}mlyoun", m);
+
+    for (i, &value) in values.iter().enumerate() {
+        if value != 0 {
+            print!("{} {} ", value, units[i]);
+        }
     }
-    if k != 0 {
-        print!(" {}alf", k);
-    }
-    if c != 0 {
-        print!(" {}", c);
-    }
-    println!(" dzd");
+    println!("dzd")
 }
