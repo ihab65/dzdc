@@ -1,31 +1,74 @@
-use std::{env, process::exit};
+use std::{env::{self, Args}, process::exit};
 
-#[derive(PartialEq)]
-struct Currency<'a> {
-    name: &'a str,
+#[derive(PartialEq, Debug)]
+struct Currency {
+    name: String,
     value: f32,
 }
 
-impl<'a> Currency<'a> {
-    const fn new(code: &'a str, price: f32) -> Self {
-        Currency { name: code, value: price }
+impl Currency {
+    const fn new(code: String, price: f32) -> Self {
+        Currency {
+            name: code,
+            value: price,
+        }
     }
 }
 
-const CURRENCIES: [Currency; 3] = [
-    Currency::new("USD", 210f32),
-    Currency::new("EUR", 220f32),
-    Currency::new("GBP", 250f32)
-];
+fn entry(currencies: Vec<Currency>) -> Result<(), ()> {
+    let mut args = env::args();
+    let program = args.next().expect("path to program is provided");
+    let subcommand = args.next().ok_or_else(|| {
+        eprintln!("ERROR: no subcommand is provided");
+        eprintln!("Usage: {program} convert <SUM> <CURRENCY>");
+        exit(1)
+    })?;
+
+    match subcommand.as_str() {
+        "convert" => {
+            as_word(calculate(args, currencies) as u32);
+            Ok(())
+        }
+        // "add" => {
+        //     let unit = args
+        //         .next()
+        //         .expect("there is no arg to parse")
+        //         .to_uppercase();
+            
+        //     let sum = args
+        //         .next()
+        //         .expect("there is no arg to parse")
+        //         .parse::<f32>()
+        //         .map_err(|err| {
+        //             eprintln!("ERROR: Failed parsing the sum argument: {}", err);
+        //         })?;
+
+
+        //     let value = Currency::new(unit, sum);
+        //     currencies.push(value);
+        //     for elem in currencies.iter() {
+        //         println!("{:?}", elem)
+        //     }
+        //     Ok(())
+        // }
+        _ => {
+            // TODO: add a usage fn
+            Err(())
+        }
+    }
+}
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let currencies: Vec<Currency> = vec![
+        Currency::new(String::from("USD"), 210f32),
+        Currency::new(String::from("EUR"), 220f32),
+        Currency::new(String::from("GBP"), 250f32),
+    ];
+    entry(currencies).unwrap();
+}
 
-    if args.len() < 3 {
-        eprintln!("Usage: dzdc <SUM> <CURRENCY>");
-    }
-
-    let sum = match args[1].parse::<f32>() {
+fn calculate(mut args: Args, currencies: Vec<Currency>) -> f32 {
+    let sum = match args.next().expect("there is no arg to parse").parse::<f32>() {
         Ok(value) => value,
         Err(err) => {
             eprintln!("ERROR: Failed parsing the sum argument: {}", err);
@@ -33,29 +76,23 @@ fn main() {
         }
     };
 
-    let unit = &args[2].to_uppercase();
-    let currency = match CURRENCIES.iter().find(|&c| c.name == unit) {
-        Some(currency) => {
-            currency
-        }
+    let unit = args
+        .next()
+        .expect("there is no arg to parse")
+        .to_uppercase();
+    let currency = match currencies.iter().find(|&c| c.name == unit) {
+        Some(currency) => currency,
         None => {
             eprintln!("ERROR: Unknown unit: {}", unit);
             eprintln!("INFO:  you can use USD, EUR or GBP as units");
             exit(1)
         }
     };
-
-    as_word(calculate(sum, currency) as u32)
-}
-
-
-fn calculate(sum: f32, unit: &Currency<'_>) -> f32 {
-    sum * unit.value
+    sum * currency.value
 }
 
 fn format_num(cstr: String) -> String {
-    cstr
-        .as_bytes()
+    cstr.as_bytes()
         .rchunks(3)
         .rev()
         .map(std::str::from_utf8)
@@ -71,7 +108,7 @@ fn as_word(mut amount: u32) {
 
     let amount_str = format!("{}", amount);
     print!("{} dzd ", format_num(amount_str));
-    
+
     for (i, &divisor) in divs.iter().enumerate() {
         values[i] = amount / divisor;
         amount %= divisor;
@@ -83,5 +120,5 @@ fn as_word(mut amount: u32) {
             print!("{} {} ", value, units[i]);
         }
     }
-    println!("\n")
+    println!()
 }
